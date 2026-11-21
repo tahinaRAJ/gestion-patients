@@ -1,0 +1,17 @@
+# Build Maven
+target/
+*.war
+*.class
+
+# IDE
+.vscode/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.factorypath
+
+# Système / logs
+.DS_Store
+*.log
