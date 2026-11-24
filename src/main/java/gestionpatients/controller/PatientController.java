@@ -9,16 +9,16 @@ import gestionpatients.entity.Role;
 import gestionpatients.service.PersonneService;
 
 /**
- * CRUD des patients, réservé aux médecins.
+ * CRUD des patients, reserve aux medecins.
  *
  *   GET  /patients                -> liste
  *   GET  /patients/nouveau        -> formulaire vide
- *   POST /patients/ajouter        -> création
- *   GET  /patients/modifier?id=   -> formulaire pré-rempli
- *   POST /patients/modifier       -> mise à jour
+ *   POST /patients/ajouter        -> creation
+ *   GET  /patients/modifier?id=   -> formulaire pre-rempli
+ *   POST /patients/modifier       -> mise a jour
  *   POST /patients/supprimer      -> suppression (id dans le formulaire)
  *
- * Le paramètre "Personne patient" est rempli par BindParam depuis les champs du formulaire.
+ * Le parametre "Personne patient" est rempli par BindParam depuis les champs du formulaire.
  */
 @Controller("/patients")
 public class PatientController {
@@ -82,10 +82,11 @@ public class PatientController {
     }
 
     private ViewUtil formulaire(Personne patient, String erreur) {
-        // Le mot de passe (haché) ne doit jamais repartir vers le navigateur
+        // Le mot de passe (hache) ne doit jamais repartir vers le navigateur
         patient.setMotDePasse(null);
         ViewUtil vue = Vues.vue("patient-form");
         Vues.ajouter(vue, "patient", patient);
+        vue.addValue("sexes", personneService.listerSexes());
         if (erreur != null) {
             vue.addValue("erreur", erreur);
         }

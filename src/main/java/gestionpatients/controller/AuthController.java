@@ -11,11 +11,11 @@ import gestionpatients.service.PersonneService;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * Connexion / déconnexion.
- * Une fois connecté, la session contient :
- *   "user"   -> nom complet (clé auth.user-session-key du web.xml, vérifiée par @Auth)
- *   "role"   -> "PATIENT" ou "MEDECIN" (clé auth.role-session-key, vérifiée par @Auth(roles = ...))
- *   "userId" -> id de la personne connectée
+ * Connexion / deconnexion.
+ * Une fois connecte, la session contient :
+ *   "user"   -> nom complet (cle auth.user-session-key du web.xml, verifiee par @Auth)
+ *   "role"   -> "PATIENT" ou "MEDECIN" (cle auth.role-session-key, verifiee par @Auth(roles = ...))
+ *   "userId" -> id de la personne connectee
  */
 @Controller
 public class AuthController {
@@ -47,12 +47,12 @@ public class AuthController {
             return vue;
         }
 
-        // Nouvel identifiant de session à la connexion (protection contre la fixation de session)
+        // Nouvel identifiant de session a la connexion (protection contre la fixation de session)
         request.changeSessionId();
 
         Personne p = personne.get();
         session.injectSessionAttribute("user", p.getNomComplet());
-        session.injectSessionAttribute("role", p.getRole().name());
+        session.injectSessionAttribute("role", p.getRole().getLibelle());
         session.injectSessionAttribute("userId", p.getId());
         return Vues.redirection("/personnes");
     }

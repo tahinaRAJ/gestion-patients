@@ -10,20 +10,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 import gestionpatients.entity.Personne;
 import gestionpatients.entity.Role;
+import gestionpatients.entity.Sexe;
 import gestionpatients.repository.PersonneRepository;
+import gestionpatients.repository.RoleRepository;
+import gestionpatients.repository.SexeRepository;
 
 /**
- * Règles métier sur les personnes. Les erreurs de saisie sont signalées par une
- * IllegalArgumentException dont le message est affiché tel quel dans le formulaire.
+ * Regles metier sur les personnes. Les erreurs de saisie sont signalees par une
+ * IllegalArgumentException dont le message est affiche tel quel dans le formulaire.
  */
 @Service
 public class PersonneService {
 
     private final PersonneRepository personneRepository;
+    private final RoleRepository roleRepository;
+    private final SexeRepository sexeRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public PersonneService(PersonneRepository personneRepository, PasswordEncoder passwordEncoder) {
+    public PersonneService(PersonneRepository personneRepository, RoleRepository roleRepository,
+            SexeRepository sexeRepository, PasswordEncoder passwordEncoder) {
         this.personneRepository = personneRepository;
+        this.roleRepository = roleRepository;
+        this.sexeRepository = sexeRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -36,8 +44,26 @@ public class PersonneService {
                 .filter(p -> passwordEncoder.matches(motDePasse, p.getMotDePasse()));
     }
 
-    public List<Personne> listerParRole(Role role) {
-        return personneRepository.findByRoleOrderByNomAscPrenomAsc(role);
+    /** libelleRole : Role.PATIENT ou Role.MEDECIN. */
+    public List<Personne> listerParRole(String libelleRole) {
+        return personneRepository.findByRoleLibelleOrderByNomAscPrenomAsc(libelleRole);
+    }
+
+    /** Les valeurs de la table sexe, pour la liste deroulante du formulaire. */
+    public List<Sexe> listerSexes() {
+        return sexeRepository.findAll();
+    }
+
+    /** Le role de ce libelle ; cree s'il n'existe pas encore dans la table role. */
+    @Transactional
+    public Role role(String libelle) {
+        return roleRepository.findByLibelle(libelle).orElseGet(() -> roleRepository.save(new Role(libelle)));
+    }
+
+    /** Le sexe de ce libelle ; cree s'il n'existe pas encore dans la table sexe. */
+    @Transactional
+    public Sexe sexe(String libelle) {
+        return sexeRepository.findByLibelle(libelle).orElseGet(() -> sexeRepository.save(new Sexe(libelle)));
     }
 
     public Optional<Personne> trouver(Long id) {
@@ -45,27 +71,27 @@ public class PersonneService {
     }
 
     public Optional<Personne> trouverPatient(Long id) {
-        return id == null ? Optional.empty() : personneRepository.findByIdAndRole(id, Role.PATIENT);
+        return id == null ? Optional.empty() : personneRepository.findByIdAndRoleLibelle(id, Role.PATIENT);
     }
 
     @Transactional
     public Personne ajouterPatient(Personne patient) {
         patient.setId(null);
-        patient.setRole(Role.PATIENT);
+        patient.setRole(role(Role.PATIENT));
         valider(patient);
         if (estVide(patient.getMotDePasse()) || patient.getMotDePasse().length() < 6) {
-            throw new IllegalArgumentException("Le mot de passe doit contenir au moins 6 caractères.");
+            throw new IllegalArgumentException("Le mot de passe doit contenir au moins 6 caracteres.");
         }
         if (personneRepository.existsByEmailIgnoreCase(patient.getEmail())) {
-            throw new IllegalArgumentException("Cet email est déjà utilisé.");
+            throw new IllegalArgumentException("Cet email est deja utilise.");
         }
         patient.setMotDePasse(passwordEncoder.encode(patient.getMotDePasse()));
         return personneRepository.save(patient);
     }
 
     /**
-     * Remplace l'état civil du patient par celui du formulaire.
-     * Mot de passe laissé vide = mot de passe inchangé.
+     * Remplace l'etat civil du patient par celui du formulaire.
+     * Mot de passe laisse vide = mot de passe inchange.
      */
     @Transactional
     public Personne modifierPatient(Personne formulaire) {
@@ -73,11 +99,11 @@ public class PersonneService {
                 .orElseThrow(() -> new IllegalArgumentException("Patient introuvable."));
         valider(formulaire);
         if (personneRepository.existsByEmailIgnoreCaseAndIdNot(formulaire.getEmail(), patient.getId())) {
-            throw new IllegalArgumentException("Cet email est déjà utilisé.");
+            throw new IllegalArgumentException("Cet email est deja utilise.");
         }
         if (!estVide(formulaire.getMotDePasse())) {
             if (formulaire.getMotDePasse().length() < 6) {
-                throw new IllegalArgumentException("Le mot de passe doit contenir au moins 6 caractères.");
+                throw new IllegalArgumentException("Le mot de passe doit contenir au moins 6 caracteres.");
             }
             patient.setMotDePasse(passwordEncoder.encode(formulaire.getMotDePasse()));
         }
@@ -98,7 +124,7 @@ public class PersonneService {
         trouverPatient(id).ifPresent(personneRepository::delete);
     }
 
-    /** Ajoute une personne déjà complète (mot de passe en clair, haché ici). Utilisé pour les données initiales. */
+    /** Ajoute une personne deja complete (mot de passe en clair, hache ici). Utilise pour les donnees initiales. */
     @Transactional
     public Personne creer(Personne personne, String motDePasse) {
         personne.setMotDePasse(passwordEncoder.encode(motDePasse));
@@ -117,9 +143,19 @@ public class PersonneService {
             throw new IllegalArgumentException("L'email est invalide.");
         }
         if (p.getDateNaissance() != null && p.getDateNaissance().isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("La date de naissance ne peut pas être dans le futur.");
+            throw new IllegalArgumentException("La date de naissance ne peut pas etre dans le futur.");
         }
         p.setEmail(p.getEmail().trim());
+        p.setSexe(sexeDuFormulaire(p.getSexe()));
+    }
+
+    /** Le formulaire n'envoie que "sexe.id" : on charge la vraie ligne de la table sexe. */
+    private Sexe sexeDuFormulaire(Sexe sexe) {
+        if (sexe == null || sexe.getId() == null) {
+            return null;
+        }
+        return sexeRepository.findById(sexe.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Sexe invalide."));
     }
 
     private static boolean estVide(String s) {

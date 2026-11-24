@@ -11,10 +11,10 @@ WAR_FILE="target/${APP_NAME}.war"
 
 if [ -d "$TOMCAT_WEBAPPS" ]; then
     cp -f "$WAR_FILE" "$TOMCAT_WEBAPPS/"
-    echo "WAR déployé vers $TOMCAT_WEBAPPS"
+    echo "WAR deploye vers $TOMCAT_WEBAPPS"
 else
-    echo "Répertoire Tomcat non trouvé : $TOMCAT_WEBAPPS"
-    echo "WAR généré : $WAR_FILE (à copier manuellement dans webapps/)"
+    echo "Repertoire Tomcat non trouve : $TOMCAT_WEBAPPS"
+    echo "WAR genere : $WAR_FILE (a copier manuellement dans webapps/)"
 fi
 
 echo ""

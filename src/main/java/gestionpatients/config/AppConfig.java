@@ -20,8 +20,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * Config Spring 100% Java (chargée par le ContextLoaderListener déclaré dans le web.xml).
- * - component-scan : détecte les @Controller du framework (méta-annotés @Component), @Service, @Repository
+ * Config Spring 100% Java (chargee par le ContextLoaderListener declare dans le web.xml).
+ * - component-scan : detecte les @Controller du framework (meta-annotes @Component), @Service, @Repository
  * - JPA/Hibernate + PostgreSQL (connexion dans db.properties)
  */
 @Configuration
@@ -61,7 +61,7 @@ public class AppConfig {
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 
         Properties props = new Properties();
-        // "update" : crée la table si sql/init.sql n'a pas été exécuté
+        // "update" : cree la table si sql/init.sql n'a pas ete execute
         props.setProperty("hibernate.hbm2ddl.auto", "update");
         props.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         props.setProperty("hibernate.show_sql", "true");

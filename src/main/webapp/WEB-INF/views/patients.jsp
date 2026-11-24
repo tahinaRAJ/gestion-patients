@@ -1,46 +1,69 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="titre" value="Patients"/>
+<c:set var="menu" value="patients"/>
 <%@ include file="_entete.jspf" %>
-<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 
 <div class="entete-page">
-    <h1>Patients <span class="badge">${patients.size()}</span></h1>
+    <div>
+        <h1>Patients</h1>
+        <p class="sous-titre">${patients.size()} patient(s) enregistre(s).</p>
+    </div>
     <a class="bouton" href="${ctx}/patients/nouveau">+ Nouveau patient</a>
 </div>
 
 <div class="carte tableau">
     <c:choose>
         <c:when test="${empty patients}">
-            <div class="vide">Aucun patient enregistré.</div>
+            <div class="vide">
+                Aucun patient enregistre.<br><br>
+                <a class="bouton" href="${ctx}/patients/nouveau">+ Ajouter le premier patient</a>
+            </div>
         </c:when>
         <c:otherwise>
             <table>
+                <thead>
                 <tr>
-                    <th>Id</th><th>Nom</th><th>Prénom</th><th>Né(e) le</th><th>À</th><th>Sexe</th>
-                    <th>Adresse</th><th>Téléphone</th><th>Email</th><th></th>
+                    <th>Patient</th><th>Naissance</th><th>Sexe</th><th>Adresse</th><th>Telephone</th>
+                    <th style="text-align: right;">Actions</th>
                 </tr>
+                </thead>
+                <tbody>
                 <c:forEach var="p" items="${patients}">
                     <tr>
-                        <td>${p.id}</td>
-                        <td><c:out value="${p.nom}"/></td>
-                        <td><c:out value="${p.prenom}"/></td>
-                        <td><c:out value="${p.dateNaissance}"/></td>
-                        <td><c:out value="${p.lieuNaissance}"/></td>
-                        <td><c:out value="${p.sexe}"/></td>
-                        <td><c:out value="${p.adresse}"/></td>
-                        <td><c:out value="${p.telephone}"/></td>
-                        <td><c:out value="${p.email}"/></td>
-                        <td class="actions">
-                            <a class="bouton secondaire petit" href="${ctx}/patients/modifier?id=${p.id}">Modifier</a>
-                            <form class="en-ligne" action="${ctx}/patients/supprimer" method="post"
-                                  onsubmit="return confirm('Supprimer ce patient ?');">
-                                <input type="hidden" name="id" value="${p.id}">
-                                <button type="submit" class="bouton danger petit">Supprimer</button>
-                            </form>
+                        <td>
+                            <div class="personne">
+                                <span class="avatar">${p.initiales}</span>
+                                <div>
+                                    <div class="personne-nom"><c:out value="${p.nomComplet}"/></div>
+                                    <div class="personne-email"><c:out value="${p.email}"/></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>${p.dateNaissanceAffichee}</div>
+                            <div class="personne-email"><c:out value="${p.lieuNaissance}"/></div>
+                        </td>
+                        <td>
+                            <c:if test="${not empty p.sexe}">
+                                <span class="badge ${p.sexe.libelle}"><c:out value="${p.sexe.libelle}"/></span>
+                            </c:if>
+                        </td>
+                        <td class="discret"><c:out value="${p.adresse}"/></td>
+                        <td class="discret"><c:out value="${p.telephone}"/></td>
+                        <td>
+                            <div class="actions">
+                                <a class="bouton secondaire petit" href="${ctx}/patients/modifier?id=${p.id}">Modifier</a>
+                                <form class="en-ligne" action="${ctx}/patients/supprimer" method="post"
+                                      onsubmit="return confirm('Supprimer ce patient ?');">
+                                    <input type="hidden" name="id" value="${p.id}">
+                                    <button type="submit" class="bouton danger petit">Supprimer</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 </c:forEach>
+                </tbody>
             </table>
         </c:otherwise>
     </c:choose>

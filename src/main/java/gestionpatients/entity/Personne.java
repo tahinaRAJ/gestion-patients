@@ -1,22 +1,29 @@
 package gestionpatients.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 /**
- * Une personne de l'application : état civil + rôle (PATIENT ou MEDECIN).
- * L'email et le mot de passe (haché BCrypt) servent à la connexion.
+ * Une personne de l'application : etat civil + role (table role : PATIENT ou MEDECIN).
+ * L'email et le mot de passe (hache BCrypt) servent a la connexion.
  *
  * Les setters portent le nom des champs des formulaires : BindParam du framework
- * remplit l'objet tout seul (setNom -> "nom", setDateNaissance -> "dateNaissance"...).
+ * remplit l'objet tout seul (setNom -> "nom", setDateNaissance -> "dateNaissance",
+ * setSexe -> "sexe.id"...).
+ *
+ * Colonnes en camelCase : le nom du champ Java sert de nom de colonne (dateNaissance...).
  */
 @Entity
 @Table(name = "personne")
@@ -32,14 +39,13 @@ public class Personne {
     @Column(length = 150)
     private String prenom;
 
-    @Column(name = "date_naissance")
     private LocalDate dateNaissance;
 
-    @Column(name = "lieu_naissance", length = 100)
+    @Column(length = 100)
     private String lieuNaissance;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 1)
+    @ManyToOne
+    @JoinColumn(name = "idSexe")
     private Sexe sexe;
 
     @Column(length = 255)
@@ -51,12 +57,16 @@ public class Personne {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(name = "mot_de_passe", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String motDePasse;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "idRole", nullable = false)
     private Role role;
+
+    /** Mise a jour automatiquement a chaque insertion / modification. */
+    @Column(nullable = false)
+    private LocalDateTime dateModification;
 
     public Personne() {
     }
@@ -74,9 +84,29 @@ public class Personne {
         this.role = role;
     }
 
-    /** "Rakoto Jean" : utilisé pour l'affichage et mis en session à la connexion. */
+    @PrePersist
+    @PreUpdate
+    void majDateModification() {
+        dateModification = LocalDateTime.now();
+    }
+
+    /** "Rakoto Jean" : utilise pour l'affichage et mis en session a la connexion. */
     public String getNomComplet() {
         return prenom == null || prenom.isBlank() ? nom : nom + " " + prenom;
+    }
+
+    /** "RJ" : pastille affichee a cote du nom dans les listes. */
+    public String getInitiales() {
+        String i = nom == null || nom.isBlank() ? "" : nom.substring(0, 1);
+        if (prenom != null && !prenom.isBlank()) {
+            i += prenom.substring(0, 1);
+        }
+        return i.toUpperCase();
+    }
+
+    /** Date de naissance au format 21/06/1995 (vide si inconnue). */
+    public String getDateNaissanceAffichee() {
+        return dateNaissance == null ? "" : dateNaissance.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
     public Long getId() { return id; }
@@ -111,4 +141,6 @@ public class Personne {
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+
+    public LocalDateTime getDateModification() { return dateModification; }
 }

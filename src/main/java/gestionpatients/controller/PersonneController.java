@@ -12,9 +12,9 @@ import gestionpatients.entity.Role;
 import gestionpatients.service.PersonneService;
 
 /**
- * Liste des personnes, séparées selon leur rôle.
- * Un médecin voit tous les patients ; un patient ne voit que sa propre fiche
- * (l'état civil des autres patients ne le concerne pas).
+ * Liste des personnes, separees selon leur role.
+ * Un medecin voit tous les patients ; un patient ne voit que sa propre fiche
+ * (l'etat civil des autres patients ne le concerne pas).
  */
 @Controller("/personnes")
 public class PersonneController {
@@ -31,7 +31,7 @@ public class PersonneController {
         ViewUtil vue = Vues.vue("personnes");
         vue.addValue("medecins", personneService.listerParRole(Role.MEDECIN));
 
-        if (Role.MEDECIN.name().equals(session.getSessionAttribute("role"))) {
+        if (Role.MEDECIN.equals(session.getSessionAttribute("role"))) {
             vue.addValue("patients", personneService.listerParRole(Role.PATIENT));
         } else {
             Long userId = (Long) session.getSessionAttribute("userId");
